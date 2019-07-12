@@ -1,25 +1,47 @@
 package com.example.danilo.appdebts;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Spinner;
+
+import com.example.danilo.appdebts.DAO.CategoriaDAO;
+import com.example.danilo.appdebts.DAO.DebtsDAO;
+import com.example.danilo.appdebts.classes.Categoria;
+import com.example.danilo.appdebts.database.DatabaseHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class InsertDebts extends AppCompatActivity {
 
     EditText mEditTextDataPay;
-
+    Spinner mSpinnerCategory;
     final Calendar myCalendar = Calendar.getInstance();
+
+    //inserção no banco de dados
+    CategoriaDAO mCategoryDAO;
+    DebtsDAO mDebtsDAO;
+    private SQLiteDatabase mConection;
+    private DatabaseHelper mDataHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +78,73 @@ public class InsertDebts extends AppCompatActivity {
             }
         });
 
+        //botão de adicionar categoria
+        FloatingActionButton fab = findViewById(R.id.floatingActionButtonAddCategory);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(InsertDebts.this);
+                builder.setTitle(R.string.newCategoryTitle);
+
+                // Set up the input
+                final EditText input = new EditText(InsertDebts.this);
+                // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                builder.setView(input);
+
+                // Set up the buttons
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mCategoryDAO.insert(new Categoria(input.getText().toString()));
+                        updateSpinnerCategory();
+                        //m_Text = input.getText().toString();
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
+            }
+        });
+
+        createConnection();
+        updateSpinnerCategory();
+
+    }
+
+    public void updateSpinnerCategory() {
+        List<Categoria> categories = mCategoryDAO.listCategorias();
+        mSpinnerCategory.setAdapter(null);
+
+        final List<String> list = new ArrayList<String>();
+        for(int i=0;i<categories.size();i++){
+            Categoria cat = categories.get(i);
+            list.add(cat.getTipo());
+        }
+
+        ArrayAdapter<String> adp1 = new ArrayAdapter<String>(this,
+                android.R.layout.simple_list_item_1, list);
+        adp1.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinnerCategory.setAdapter(adp1);
+    }
+
+    //criar conexão
+    private void createConnection() {
+        try {
+            mDataHelper = new DatabaseHelper(this);
+            mConection = mDataHelper.getWritableDatabase();
+            mDebtsDAO = new DebtsDAO(mConection);
+            mCategoryDAO = new CategoriaDAO(mConection);
+            //Snackbar.make(mLayout, R.string.sucess_conection, Snackbar.LENGTH_LONG).show();
+        } catch (SQLException e) {
+            //Snackbar.make(mLayout, e.toString(), Snackbar. LENGTH_LONG).show();
+        }
     }
 
     private void updateLabel() {
@@ -78,6 +167,9 @@ public class InsertDebts extends AppCompatActivity {
             case android.R.id. home: //ID do seu botão (gerado automaticamente pelo android, usando como está, deve funcionar
                 startActivity( new Intent(this, MainWindow. class)); //O efeito ao ser pressionado do botão (no caso abre a activity)
                 finishAffinity(); //Método para matar a activity e não deixa-lá indexada na pilhagem
+                break;
+            case R.id.okMenu:
+                Log.d("Item Menu","Menu: "+R.string.salvaMenu);
                 break;
             default:break;
         }

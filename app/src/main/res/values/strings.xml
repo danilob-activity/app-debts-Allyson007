@@ -5,6 +5,9 @@
     <string name="title_activity_insert_debts">insertDebts</string>
     <string name="salvaMenu">Salvar</string>
     <string name="cancelMenu">Cancela</string>
+    <string name="Pay">Pay</string>
+    <string name="PaymentDate">Payment</string>
     <string name="cancelaItem">Cancela</string>
     <string name="titleInsert">Inserir novo débito</string>
+    <string name="newCategoryTitle">Insert new Category</string>
 </resources>

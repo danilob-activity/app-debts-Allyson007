@@ -57,7 +57,7 @@ public class CategoriaDAO {
         Categoria cat = new Categoria();
         String[] params = new String[1];
         params[0] = String.valueOf(id);
-        Cursor result = mConnection.rawQuery("Select * from categoria where id=?", params);
+        Cursor result = mConnection.rawQuery("Select * from categoria where id='?'", params);
         if (result.getCount()>0){
             result.moveToFirst();
             cat.setId(result.getInt(result.getColumnIndexOrThrow("id")));
